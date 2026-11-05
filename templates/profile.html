@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="panel narrow"><h2>Your profile</h2>
+<p class="muted">{{ me.org_type }} · {{ me.email }}</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="name">Organisation name</label><input id="name" name="name" value="{{ me.name }}" required>
+  <label for="phone">Phone</label><input id="phone" name="phone" value="{{ me.phone or '' }}">
+  <label for="address">Address</label><input id="address" name="address" value="{{ me.address or '' }}" required>
+  <input type="hidden" id="lat" name="lat" value="{{ me.lat if me.lat is not none else '' }}"><input type="hidden" id="lng" name="lng" value="{{ me.lng if me.lng is not none else '' }}">
+  <p class="geo-note">Your pin decides the distances you see and the alerts you get.</p>
+  <button type="button" class="btn light sm" data-geo>Use my current location</button>
+  <div id="pickmap" class="map small" style="margin-top:.7rem" data-lat="{{ CENTER[0] }}" data-lng="{{ CENTER[1] }}"></div>
+  <button class="btn block">Save profile</button>
+</form></div>
+{% endblock %}

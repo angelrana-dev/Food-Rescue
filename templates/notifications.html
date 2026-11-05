@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Alerts{% endblock %}
+{% block content %}
+<h2>Alerts</h2>
+<p class="muted">Live: new alerts appear here the moment they happen.</p>
+<div class="panel" id="alerts" style="padding:0;overflow:hidden">
+{% for n in items %}<a class="notif {{ 'new' if not n.is_read }}" href="{{ n.link or url_for('dashboard') }}">{{ n.message }}<small>{{ n.created_at|nice }}</small></a>
+{% else %}<p class="empty" id="no-alerts" style="border:0;margin:0">Nothing yet. You’ll be alerted about new food, approvals and pickups.</p>{% endfor %}
+</div>
+{% endblock %}

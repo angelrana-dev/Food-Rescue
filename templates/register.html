@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}Join{% endblock %}
+{% block content %}
+<div class="panel narrow"><h2>Join FoodRescue</h2>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>I want to</label>
+  <div class="role-pick">
+    <label><input type="radio" name="role" value="donor" {{ 'checked' if form.get('role','donor') == 'donor' }}>Share surplus food<small>Restaurant, hotel, event, caterer</small></label>
+    <label><input type="radio" name="role" value="receiver" {{ 'checked' if form.get('role') == 'receiver' }}>Receive food<small>NGO, shelter, community kitchen</small></label>
+  </div>
+  <label for="org_type">Organisation type</label>
+  <select id="org_type" name="org_type" data-selected="{{ form.get('org_type','') }}" data-types='{{ {"donor": DONOR_TYPES, "receiver": RECEIVER_TYPES}|tojson }}'></select>
+  <label for="name">Organisation name</label><input id="name" name="name" value="{{ form.get('name','') }}" required>
+  <div class="row">
+    <div><label for="email">Email</label><input id="email" name="email" type="email" value="{{ form.get('email','') }}" required></div>
+    <div><label for="phone">Phone</label><input id="phone" name="phone" value="{{ form.get('phone','') }}"></div>
+  </div>
+  <label for="password">Password (6+ characters)</label><input id="password" name="password" type="password" minlength="6" required>
+  <label for="address">Address</label><input id="address" name="address" value="{{ form.get('address','') }}" required>
+  <input type="hidden" id="lat" name="lat" value="{{ form.get('lat','') }}"><input type="hidden" id="lng" name="lng" value="{{ form.get('lng','') }}">
+  <p class="geo-note">Pin your location so we can show distances and alert nearby partners. Click the map or use your current location.</p>
+  <button type="button" class="btn light sm" data-geo>Use my current location</button>
+  <div id="pickmap" class="map small" style="margin-top:.7rem" data-lat="{{ CENTER[0] }}" data-lng="{{ CENTER[1] }}"></div>
+  <button class="btn block">Create account</button>
+</form>
+<p class="muted" style="margin-top:1rem">Already registered? <a href="{{ url_for('login') }}">Log in</a>.</p></div>
+{% endblock %}

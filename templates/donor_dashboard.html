@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% from "_macros.html" import badge %}{% block title %}Donor dashboard{% endblock %}
+{% block content %}
+<div class="page-head"><div><h2>Hello, {{ me.name }}</h2><p class="muted" style="margin:0">Track every listing from posting to pickup.</p></div>
+  <a class="btn" href="{{ url_for('listing_new') }}">Post surplus food</a></div>
+<div class="stats">
+  <div class="stat hot"><b>{{ stats.rescued }}</b><span>meals picked up</span></div>
+  <div class="stat"><b>{{ stats.active }}</b><span>active listings</span></div>
+  <div class="stat"><b>{{ stats.pending }}</b><span>requests to review</span></div>
+  <div class="stat"><b>{{ stats.posted }}</b><span>listings posted</span></div>
+</div>
+
+<h2>Requests waiting for you</h2>
+{% for r in reqs %}
+<div class="req">
+  <header><div><h3>{{ r.receiver_name }} wants {{ r.quantity }} {{ r.unit }}</h3><span class="muted small">{{ r.receiver_type }}{% if r.receiver_phone %}, {{ r.receiver_phone }}{% endif %} · for <a href="{{ url_for('listing_detail', lid=r.listing_id) }}">{{ r.title }}</a></span></div>{{ badge(r.status) }}</header>
+  {% if r.note %}<p class="muted">“{{ r.note }}”</p>{% endif %}
+  {% if r.status == 'pending' %}
+  <div class="actions">
+    <form class="inline" method="post" action="{{ url_for('request_action', rid=r.id, action='approve') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn sm">Approve</button></form>
+    <form class="inline" method="post" action="{{ url_for('request_action', rid=r.id, action='reject') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn sm light">Decline</button></form>
+  </div>
+  {% else %}
+  <p class="small muted">Approved. Ask the receiver for their 4-digit code when they arrive.</p>
+  <form class="verify" method="post" action="{{ url_for('request_action', rid=r.id, action='pickup') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input name="code" inputmode="numeric" maxlength="4" placeholder="Code" aria-label="Pickup code" required><button class="btn sm">Confirm pickup</button></form>
+  {% endif %}
+</div>
+{% else %}<div class="empty">No open requests. Receivers are alerted when you post new food.</div>{% endfor %}
+
+<h2 style="margin-top:2rem">Your listings</h2>
+{% if listings %}<div class="table-wrap"><table>
+  <tr><th>Food</th><th>Quantity left</th><th>Expires</th><th>Status</th><th></th></tr>
+  {% for l in listings %}<tr>
+    <td><a href="{{ url_for('listing_detail', lid=l.id) }}"><b>{{ l.title }}</b></a>{% if l.pending %} <span class="badge b-pending">{{ l.pending }} new</span>{% endif %}</td>
+    <td>{{ l.quantity_left }} / {{ l.quantity_total }} {{ l.unit }}</td>
+    <td>{{ l.expires_at|nice }}{% if l.status == 'available' %}<br><span class="small muted">{{ l.expires_at|timeleft }} left</span>{% endif %}</td>
+    <td>{{ badge(l.status) }}</td>
+    <td class="right">{% if l.status in ('available','reserved') %}<form class="inline" method="post" action="{{ url_for('listing_cancel', lid=l.id) }}" data-confirm="Withdraw this listing?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn light sm">Withdraw</button></form>{% endif %}</td>
+  </tr>{% endfor %}
+</table></div>
+{% else %}<div class="empty">You haven’t posted anything yet. <a href="{{ url_for('listing_new') }}">Post your first surplus listing</a>.</div>{% endif %}
+{% endblock %}

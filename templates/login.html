@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="panel narrow"><h2>Log in or get started</h2>
+<p class="muted">Use any email and password. If the email is new, your account is created instantly.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="email">Email</label><input id="email" name="email" type="email" required autofocus>
+  <label for="password">Password (6+ characters)</label><input id="password" name="password" type="password" minlength="6" required>
+  <label>If this is a new account, I want to</label>
+  <div class="role-pick">
+    <label><input type="radio" name="role" value="donor" checked>Share surplus food<small>Restaurant, hotel, event</small></label>
+    <label><input type="radio" name="role" value="receiver">Receive food<small>NGO, shelter, kitchen</small></label>
+  </div>
+  <p style="margin-top:1.2rem"><button class="btn block">Continue</button></p>
+</form>
+<p class="muted">Prefer to fill in all details first? <a href="{{ url_for('register') }}">Full registration</a>.</p></div>
+{% endblock %}

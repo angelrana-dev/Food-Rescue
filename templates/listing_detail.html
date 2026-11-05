@@ -1,0 +1,66 @@
+{% extends "base.html" %}{% from "_macros.html" import badge, timeline %}{% block title %}{{ l.title }}{% endblock %}
+{% block content %}
+<div class="split">
+  <div>
+    <p><a href="{{ url_for('browse') }}">Back to all food</a></p>
+    <h1 style="font-size:2.4rem">{{ l.title }}</h1>
+    <p>{{ badge(l.status) }} <span class="chip cat-{{ l.category|lower|replace(' ','-') }}">{{ l.category }}</span>
+      {% if l.status == 'available' %}<span class="timer {{ 'urgent' if (l.expires_at|secs_left) < 7200 }}" data-icon="⏳ " data-secs="{{ l.expires_at|secs_left }}">⏳ {{ l.expires_at|timeleft }}</span> <span class="muted small">left to collect</span>{% endif %}</p>
+    {% if l.description %}<p>{{ l.description }}</p>{% endif %}
+    <div class="qty"><div class="bar"><i style="width:{{ (100 * l.quantity_left / l.quantity_total)|round|int }}%"></i></div><span>{{ l.quantity_left }} of {{ l.quantity_total }} {{ l.unit }} left</span></div>
+    <ul class="facts">
+      <li><span>Shared by</span><span>{{ l.donor_name }}, {{ l.org_type }}</span></li>
+      <li><span>Prepared</span><span>{{ l.prepared_at|nice }}</span></li>
+      <li><span>Safe to eat until</span><span>{{ l.expires_at|nice }}</span></li>
+      <li><span>Pickup address</span><span>{{ l.address }}</span></li>
+      {% if distance is not none %}<li><span>Distance from you</span><span>{{ '%.1f'|format(distance) }} km</span></li>{% endif %}
+      {% if my_req and my_req.status in ('approved','picked_up') and l.donor_phone %}<li><span>Donor phone</span><span>{{ l.donor_phone }}</span></li>{% endif %}
+    </ul>
+    {% if l.lat is not none %}<div id="detailmap" class="map small" data-lat="{{ l.lat }}" data-lng="{{ l.lng }}"></div>{% endif %}
+  </div>
+
+  <aside>
+  {% if me and me.id == l.donor_id %}
+    <div class="panel"><h3>Manage this listing</h3>
+      <p class="muted">{{ reqs|length }} request{{ '' if reqs|length == 1 else 's' }} so far.</p>
+      {% for r in reqs %}
+        <div class="req">
+          <header><div><b>{{ r.receiver_name }}</b><br><span class="muted small">{{ r.receiver_type }}{% if r.receiver_phone %}, {{ r.receiver_phone }}{% endif %}</span></div>{{ badge(r.status) }}</header>
+          <p>{{ r.quantity }} {{ l.unit }}{% if r.note %}<br><span class="muted small">“{{ r.note }}”</span>{% endif %}</p>
+          {% if r.status == 'pending' %}
+          <div class="actions">
+            <form class="inline" method="post" action="{{ url_for('request_action', rid=r.id, action='approve') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn sm">Approve</button></form>
+            <form class="inline" method="post" action="{{ url_for('request_action', rid=r.id, action='reject') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn sm light">Decline</button></form>
+          </div>
+          {% elif r.status == 'approved' %}
+          <form class="verify" method="post" action="{{ url_for('request_action', rid=r.id, action='pickup') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input name="code" inputmode="numeric" maxlength="4" placeholder="Code" aria-label="Pickup code" required><button class="btn sm">Confirm pickup</button></form>
+          {% endif %}
+        </div>
+      {% endfor %}
+      {% if l.status in ('available','reserved') %}
+      <form method="post" action="{{ url_for('listing_cancel', lid=l.id) }}" data-confirm="Withdraw this listing? Open requests will be cancelled."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn danger sm">Withdraw listing</button></form>{% endif %}
+    </div>
+  {% elif me and me.role == 'receiver' %}
+    <div class="panel">
+      {% if my_req and my_req.status in ('pending','approved','picked_up') %}
+        <h3>Your request</h3>
+        <p>{{ my_req.quantity }} {{ l.unit }}</p>
+        {{ timeline(my_req.status) }}
+        {% if my_req.status == 'approved' %}<p>Show this code to the donor when you collect:</p><div class="code">{{ my_req.pickup_code }}</div>{% elif my_req.status == 'pending' %}<p class="muted">Waiting for the donor to approve.</p>{% endif %}
+        {% if my_req.status in ('pending','approved') %}
+        <form method="post" action="{{ url_for('request_action', rid=my_req.id, action='cancel') }}" data-confirm="Cancel this request?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn light sm">Cancel request</button></form>{% endif %}
+      {% elif l.status == 'available' %}
+        <h3>Request this food</h3>
+        <form method="post" action="{{ url_for('request_food', lid=l.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label for="quantity">How many {{ l.unit }} can you collect?</label><input id="quantity" name="quantity" type="number" min="1" max="{{ l.quantity_left }}" value="{{ l.quantity_left }}" required>
+          <label for="note">Note for the donor (optional)</label><textarea id="note" name="note" placeholder="Pickup time, vehicle, number of people to feed"></textarea>
+          <p style="margin-top:1rem"><button class="btn block">Send request</button></p>
+        </form>
+      {% else %}<h3>Not available</h3><p class="muted">This listing is {{ l.status }}.</p>{% endif %}
+    </div>
+  {% elif me %}<div class="panel"><p class="muted">Donor accounts can’t request food.</p></div>
+  {% else %}<div class="panel"><h3>Want this food?</h3><p class="muted">Log in as an NGO or shelter to request it.</p><a class="btn block" href="{{ url_for('login', next=request.path) }}">Log in to request</a></div>
+  {% endif %}
+  </aside>
+</div>
+{% endblock %}

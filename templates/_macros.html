@@ -1,0 +1,25 @@
+{% macro badge(s) %}<span class="badge b-{{ s }}">{{ s|replace('_',' ')|capitalize }}</span>{% endmacro %}
+
+{% macro card(l) %}
+<a class="card listing" href="{{ url_for('listing_detail', lid=l.id) }}">
+  <div class="card-top">
+    <span class="chip cat-{{ l.category|lower|replace(' ','-') }}">{{ l.category }}</span>
+    <span class="timer {{ 'urgent' if (l.expires_at|secs_left) < 7200 }}" data-icon="⏳ " data-secs="{{ l.expires_at|secs_left }}">⏳ {{ l.expires_at|timeleft }}</span>
+  </div>
+  <h3>{{ l.title }}</h3>
+  <p class="muted small">{{ l.donor_name }}, {{ l.org_type }}</p>
+  <div class="qty"><div class="bar"><i style="width:{{ (100 * l.quantity_left / l.quantity_total)|round|int }}%"></i></div><span>{{ l.quantity_left }} of {{ l.quantity_total }} {{ l.unit }} left</span></div>
+  <p class="muted small">📍 {{ l.address }}{% if l.distance is defined and l.distance is not none %} <b>({{ '%.1f'|format(l.distance) }} km away)</b>{% endif %}</p>
+</a>
+{% endmacro %}
+
+{% macro timeline(status) %}
+{% set pos = {'pending':1,'approved':2,'picked_up':3}.get(status, -1) %}
+{% if pos >= 0 %}
+<ol class="timeline">
+  {% for s in ['Posted','Requested','Approved','Picked up'] %}
+  <li class="{{ 'done' if loop.index0 <= pos }}{{ ' current' if loop.index0 == pos }}"><i>{{ '✓' if loop.index0 < pos or pos == 3 else loop.index }}</i>{{ s }}</li>
+  {% endfor %}
+</ol>
+{% else %}{{ badge(status) }}{% endif %}
+{% endmacro %}

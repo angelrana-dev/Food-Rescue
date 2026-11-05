@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}{{ e.code }}{% endblock %}
+{% block content %}
+<div class="panel narrow"><h2>{{ {400:'Something went wrong',403:'You can’t open this page',404:'Page not found'}.get(e.code,'Error') }}</h2>
+<p class="muted">{{ e.description }}</p><a class="btn" href="{{ url_for('index') }}">Go to the home page</a></div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% from "_macros.html" import badge, timeline %}{% block title %}My requests{% endblock %}
+{% block content %}
+<div class="page-head"><div><h2>Hello, {{ me.name }}</h2><p class="muted" style="margin:0">Follow each request until the food is in your hands.</p></div>
+  <a class="btn" href="{{ url_for('browse') }}">Find food</a></div>
+<div class="stats">
+  <div class="stat hot"><b>{{ stats.rescued }}</b><span>meals collected</span></div>
+  <div class="stat"><b>{{ stats.approved }}</b><span>ready for pickup</span></div>
+  <div class="stat"><b>{{ stats.pending }}</b><span>waiting for approval</span></div>
+  <div class="stat"><b>{{ stats.total }}</b><span>requests made</span></div>
+</div>
+<h2>My requests</h2>
+{% for r in reqs %}
+<div class="req">
+  <header><div><h3><a href="{{ url_for('listing_detail', lid=r.lid) }}">{{ r.title }}</a></h3><span class="muted small">{{ r.quantity }} {{ r.unit }} from {{ r.donor_name }}</span></div>{{ badge(r.status) }}</header>
+  {{ timeline(r.status) }}
+  {% if r.status == 'approved' %}
+    <p>Collect from <b>{{ r.address }}</b> before <b>{{ r.expires_at|nice }}</b>{% if r.donor_phone %}. Donor phone: {{ r.donor_phone }}{% endif %}.</p>
+    <p class="small muted" style="margin:0">Show this code to the donor:</p><div class="code">{{ r.pickup_code }}</div>
+  {% endif %}
+  {% if r.status in ('pending','approved') %}
+  <div class="actions"><form class="inline" method="post" action="{{ url_for('request_action', rid=r.id, action='cancel') }}" data-confirm="Cancel this request?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn light sm">Cancel request</button></form></div>
+  {% endif %}
+</div>
+{% else %}<div class="empty"><h3>No requests yet</h3><p>Browse nearby listings and request the quantity you can collect.</p><a class="btn" href="{{ url_for('browse') }}">Find food near me</a></div>{% endfor %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% from "_macros.html" import card %}{% block title %}Find food{% endblock %}
+{% block content %}
+<div class="page-head"><div><h2>Find food</h2>
+  <p class="muted" style="margin:0">{{ listings|length }} listing{{ '' if listings|length == 1 else 's' }} available{% if lat is not none %}, distances measured from your location{% endif %}</p></div></div>
+<form class="filters" method="get">
+  <input type="hidden" id="lat" name="lat" value="{{ args.get('lat','') }}"><input type="hidden" id="lng" name="lng" value="{{ args.get('lng','') }}">
+  <div><label for="q">Search</label><input id="q" name="q" value="{{ args.get('q','') }}" placeholder="Biryani, bread, hotel name"></div>
+  <div><label for="category">Category</label><select id="category" name="category"><option value="">All</option>{% for c in CATEGORIES %}<option {{ 'selected' if args.get('category') == c }}>{{ c }}</option>{% endfor %}</select></div>
+  <div><label for="radius">Within</label><select id="radius" name="radius"><option value="">Any distance</option>{% for r in [2,5,10,25,50] %}<option value="{{ r }}" {{ 'selected' if args.get('radius') == r|string }}>{{ r }} km</option>{% endfor %}</select></div>
+  <div><label for="sort">Sort by</label><select id="sort" name="sort">{% for v, t in [('nearest','Nearest'),('expiry','Expiring soonest'),('newest','Newest'),('quantity','Most food')] %}<option value="{{ v }}" {{ 'selected' if args.get('sort','nearest') == v }}>{{ t }}</option>{% endfor %}</select></div>
+  <div style="display:flex;gap:.4rem"><button class="btn">Apply</button><button type="button" class="btn light" data-geo data-submit="1" title="Sort by distance from where you are">📍 Near me</button></div>
+</form>
+{% if markers or lat is not none %}
+<div id="browsemap" class="map" data-lat="{{ center[0] }}" data-lng="{{ center[1] }}" data-me="{{ 1 if lat is not none else 0 }}"></div>
+<script type="application/json" id="markers">{{ markers|tojson }}</script>
+{% endif %}
+{% if listings %}<div class="grid">{% for l in listings %}{{ card(l) }}{% endfor %}</div>
+{% else %}<div class="empty"><h3>No food matches your filters</h3><p>Widen the distance or clear the search. New surplus is posted throughout the day.</p><a class="btn light" href="{{ url_for('browse') }}">Clear filters</a></div>{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% from "_macros.html" import card %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>Good food has a deadline. Let’s beat it.</h1>
+    <p class="lead">Restaurants, hotels and event organisers post surplus food. Nearby NGOs claim it and collect it before it expires.</p>
+    <div class="actions">
+      {% if me %}<a class="btn" href="{{ url_for('dashboard') }}">Open my dashboard</a>
+      {% else %}<a class="btn" href="{{ url_for('register') }}">Join FoodRescue</a>{% endif %}
+      <a class="btn ghost" href="{{ url_for('browse') }}">Find food near me</a>
+    </div>
+  </div>
+  <div class="clock">
+    <h3>Expiring soon, right now</h3>
+    {% for l in listings[:4] %}
+    <a class="tick" href="{{ url_for('listing_detail', lid=l.id) }}">
+      <div><strong>{{ l.title }}</strong><small>{{ l.donor_name }}, {{ l.quantity_left }} {{ l.unit }}</small></div>
+      <span class="timer {{ 'urgent' if (l.expires_at|secs_left) < 7200 }}" data-secs="{{ l.expires_at|secs_left }}">{{ l.expires_at|timeleft }}</span>
+    </a>
+    {% else %}<p style="color:#aac7b9">No food is listed at the moment. Donors can post surplus in under a minute.</p>{% endfor %}
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat hot"><b>{{ stats.meals }}</b><span>meals rescued so far</span></div>
+  <div class="stat"><b>{{ stats.active }}</b><span>listings available now</span></div>
+  <div class="stat"><b>{{ stats.donors }}</b><span>donors sharing food</span></div>
+  <div class="stat"><b>{{ stats.receivers }}</b><span>NGOs and shelters receiving</span></div>
+</section>
+
+{% if listings %}
+<div class="page-head"><h2>Available near you</h2><a href="{{ url_for('browse') }}">See all listings and map</a></div>
+<div class="grid">{% for l in listings %}{{ card(l) }}{% endfor %}</div>
+{% endif %}
+
+<section class="how">
+  <div class="panel"><h3>If you have surplus food</h3>
+    <ol><li>List what is left, the quantity and the time it stays safe to eat.</li><li>Approve a request from a nearby NGO.</li><li>Check the receiver’s pickup code and mark the food as collected.</li></ol></div>
+  <div class="panel"><h3>If you run an NGO or shelter</h3>
+    <ol><li>Browse food sorted by distance or by how soon it expires.</li><li>Request the quantity you can collect.</li><li>Show your pickup code at the door and take the food home.</li></ol></div>
+</section>
+{% endblock %}

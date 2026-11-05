@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Post surplus food{% endblock %}
+{% block content %}
+<div class="panel narrow"><h2>Post surplus food</h2>
+<p class="muted">Receivers nearby are alerted as soon as you publish. The listing closes automatically at the expiry time.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="title">What food is it?</label><input id="title" name="title" value="{{ form.get('title','') }}" placeholder="Veg biryani and raita" required>
+  <label for="description">Details (ingredients, allergens, packaging)</label><textarea id="description" name="description">{{ form.get('description','') }}</textarea>
+  <div class="row">
+    <div><label for="category">Category</label><select id="category" name="category">{% for c in CATEGORIES %}<option {{ 'selected' if form.get('category') == c }}>{{ c }}</option>{% endfor %}</select></div>
+    <div><label for="quantity">Quantity</label><input id="quantity" name="quantity" type="number" min="1" value="{{ form.get('quantity','') }}" required></div>
+    <div><label for="unit">Unit</label><select id="unit" name="unit">{% for u in UNITS %}<option {{ 'selected' if form.get('unit') == u }}>{{ u }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="row">
+    <div><label for="prepared_at">Prepared at</label><input id="prepared_at" name="prepared_at" type="datetime-local" value="{{ form.get('prepared_at', now_local) }}" required></div>
+    <div><label for="expires_at">Safe to eat until</label><input id="expires_at" name="expires_at" type="datetime-local" value="{{ form.get('expires_at', exp_local) }}" required></div>
+  </div>
+  <label for="address">Pickup address</label><input id="address" name="address" value="{{ form.get('address', me.address or '') }}" required>
+  <input type="hidden" id="lat" name="lat" value="{{ form.get('lat', me.lat if me.lat is not none else '') }}"><input type="hidden" id="lng" name="lng" value="{{ form.get('lng', me.lng if me.lng is not none else '') }}">
+  <p class="geo-note">Drag the pin or click the map to set the exact pickup point.</p>
+  <div id="pickmap" class="map small" data-lat="{{ CENTER[0] }}" data-lng="{{ CENTER[1] }}"></div>
+  <label class="check"><input type="checkbox" name="safe" value="1" {{ 'checked' if form.get('safe') }}>I confirm this food is fresh, hygienically stored and safe to eat until the time above.</label>
+  <p style="margin-top:1.2rem"><button class="btn block">Publish listing</button></p>
+</form></div>
+{% endblock %}

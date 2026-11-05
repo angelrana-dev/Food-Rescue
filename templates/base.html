@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Share surplus food{% endblock %} | FoodRescue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-user="{{ 1 if me else 0 }}" data-since="{{ last_nid }}" data-unread="{{ unread }}">
+<header class="nav">
+  <a class="brand" href="{{ url_for('index') }}">Food<b>Rescue</b></a>
+  <nav>
+    <a href="{{ url_for('browse') }}">Find food</a>
+    {% if me %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      {% if me.role == 'donor' %}<a class="cta" href="{{ url_for('listing_new') }}">Post surplus food</a>{% endif %}
+      <a href="{{ url_for('notifications') }}">Alerts<span class="dot" id="dot" {{ 'hidden' if not unread }}>{{ unread }}</span></a>
+      <a href="{{ url_for('profile') }}">{{ me.name }}</a>
+      <form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>Log out</button></form>
+    {% else %}
+      <a href="{{ url_for('login') }}">Log in</a>
+      <a class="cta" href="{{ url_for('register') }}">Join FoodRescue</a>
+    {% endif %}
+  </nav>
+</header>
+{% with msgs = get_flashed_messages(with_categories=true) %}{% if msgs %}
+<div class="flashes">{% for c, m in msgs %}<div class="flash {{ c }}" role="status">{{ m }}</div>{% endfor %}</div>
+{% endif %}{% endwith %}
+<main class="container">{% block content %}{% endblock %}</main>
+<footer>FoodRescue connects restaurants, hotels and event organisers with NGOs, so good food reaches people instead of bins.</footer>
+<div id="toasts" aria-live="polite"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
